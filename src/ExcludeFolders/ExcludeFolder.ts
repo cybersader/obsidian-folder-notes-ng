@@ -25,7 +25,6 @@ export class ExcludedFolder {
 		this.disableFolderNote = plugin.settings.excludeFolderDefaultSettings.disableFolderNote;
 		this.enableCollapsing = plugin.settings.excludeFolderDefaultSettings.enableCollapsing;
 		this.position = position;
-		// eslint-disable-next-line max-len
 		this.excludeFromFolderOverview = plugin.settings.excludeFolderDefaultSettings.excludeFromFolderOverview;
 		this.string = '';
 		this.hideInSettings = false;

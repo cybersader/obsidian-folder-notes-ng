@@ -7,6 +7,7 @@
 
 import { browser } from '@wdio/globals';
 import { expect } from 'expect';
+import { saveAppScreenshot } from './settings-screenshot';
 
 describe('Sync safety settings UI', function () {
   it('renders the heading, all four toggles, and both sliders', async function () {
@@ -16,29 +17,31 @@ describe('Sync safety settings UI', function () {
       plugin.settings.autoCreate = true;
       plugin.settings.syncSafeAutoCreate = true;
       if (typeof plugin.saveSettings === 'function') await plugin.saveSettings();
-      app.setting.open();
-      app.setting.openTabById('folder-notes');
+      await app.setting.open();
+      await app.setting.openTabById('folder-notes');
     });
 
     await browser.pause(600); // let the tab render
 
-    const found = await browser.executeObsidian(() => {
-      const names = Array.from(document.querySelectorAll('.setting-item-name')).map((e) => (e.textContent || '').trim());
-      const heading = Array.from(document.querySelectorAll('.setting-item-heading .setting-item-name, .setting-item-heading')).some((e) => (e.textContent || '').includes('Sync safety'));
+    const found = await browser.executeObsidian(({ app }: any) => {
+      // Newer Obsidian versions mount Settings in a separate window.
+      const container: HTMLElement = app.plugins.plugins['folder-notes'].settingsTab.containerEl;
+      const names = Array.from(container.querySelectorAll('.setting-item-name')).map((e) => (e.textContent || '').trim());
+      const heading = Array.from(container.querySelectorAll('.setting-item-heading .setting-item-name, .setting-item-heading')).some((e) => (e.textContent || '').includes('Sync safety'));
       // Scroll the section into view for the screenshot.
-      const target = Array.from(document.querySelectorAll('.setting-item-name')).find((e) => (e.textContent || '').trim() === 'Protect against sync races');
+      const target = Array.from(container.querySelectorAll('.setting-item-name')).find((e) => (e.textContent || '').trim() === 'Protect against sync races');
       (target as HTMLElement | undefined)?.scrollIntoView({ block: 'start' });
       return {
         heading,
         names,
-        sliders: document.querySelectorAll('.setting-item input[type="range"]').length,
+        sliders: container.querySelectorAll('.setting-item input[type="range"]').length,
       };
     });
 
     await browser.pause(300);
     const { mkdirSync } = await import('node:fs');
     mkdirSync('./test-results', { recursive: true });
-    await browser.saveScreenshot('./test-results/settings-sync-safety.png');
+    await saveAppScreenshot('./test-results/settings-sync-safety.png');
 
     expect(found.heading).toBe(true);
     expect(found.names).toContain('Protect against sync races');
@@ -58,16 +61,18 @@ describe('Sync safety settings UI', function () {
       const plugin = app.plugins.plugins['folder-notes'];
       plugin.settings.autoCreate = false; // section must still appear, just disabled
       if (typeof plugin.saveSettings === 'function') await plugin.saveSettings();
-      app.setting.open();
-      app.setting.openTabById('folder-notes');
+      await app.setting.open();
+      await app.setting.openTabById('folder-notes');
     });
 
     await browser.pause(600);
 
-    const found = await browser.executeObsidian(() => {
-      const rows = Array.from(document.querySelectorAll('.setting-item'));
+    const found = await browser.executeObsidian(({ app }: any) => {
+      // Newer Obsidian versions mount Settings in a separate window.
+      const container: HTMLElement = app.plugins.plugins['folder-notes'].settingsTab.containerEl;
+      const rows = Array.from(container.querySelectorAll('.setting-item'));
       const masterRow = rows.find((r) => (r.querySelector('.setting-item-name')?.textContent || '').trim() === 'Protect against sync races');
-      const heading = Array.from(document.querySelectorAll('.setting-item-heading')).find((e) => (e.textContent || '').includes('Sync safety'));
+      const heading = Array.from(container.querySelectorAll('.setting-item-heading')).find((e) => (e.textContent || '').includes('Sync safety'));
       (heading as HTMLElement | undefined)?.scrollIntoView({ block: 'start' });
       return {
         hasHeading: !!heading,
@@ -77,7 +82,7 @@ describe('Sync safety settings UI', function () {
     });
 
     await browser.pause(300);
-    await browser.saveScreenshot('./test-results/settings-sync-safety-greyed.png');
+    await saveAppScreenshot('./test-results/settings-sync-safety-greyed.png');
 
     expect(found.hasHeading).toBe(true);   // section still present when auto-create off
     expect(found.hasMaster).toBe(true);

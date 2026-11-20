@@ -8,7 +8,7 @@ import {
 } from 'src/functions/styleFunctions';
 import { getFolderPathFromString } from 'src/functions/utils';
 
-export function handleDelete(file: TAbstractFile, plugin: FolderNotesPlugin): void {
+export async function handleDelete(file: TAbstractFile, plugin: FolderNotesPlugin): Promise<void> {
 	const folder = plugin.app.vault.getAbstractFileByPath(getFolderPathFromString(file.path));
 	if (folder instanceof TFolder) {
 		if (plugin.isEmptyFolderNoteFolder(folder) && getFolderNote(plugin, folder.path)) {
@@ -35,5 +35,5 @@ export function handleDelete(file: TAbstractFile, plugin: FolderNotesPlugin): vo
 	if (!folderNote) { return; }
 	removeCSSClassFromFileExplorerEL(folderNote.path, 'is-folder-note', false, plugin);
 	if (!plugin.settings.syncDelete) { return; }
-	deleteFolderNote(plugin, folderNote, false);
+	await deleteFolderNote(plugin, folderNote, false);
 }

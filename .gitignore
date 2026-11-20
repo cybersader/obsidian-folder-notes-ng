@@ -40,3 +40,14 @@ venv
 SYNC_FIX_BRIEF.md
 ESCAPE_HATCHES.md
 *.portagenty.toml
+/design-drafts/
+/test-screenshots/
+.env
+.env.*
+*.log
+.claude/settings.local.json
+
+# Only the explicitly shared E2E fixture belongs in the public repository.
+/test-vault/*
+!/test-vault/Welcome.md
+!/test-vault/.obsidian/

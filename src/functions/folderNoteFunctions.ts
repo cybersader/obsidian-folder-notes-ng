@@ -1,5 +1,4 @@
-/* eslint-disable complexity */
-/* eslint-disable max-len */
+import { renameWithoutSync } from '../events/internalRename';
 import type FolderNotesPlugin from '../main';
 import ExistingFolderNoteModal from '../modals/ExistingNote';
 import { applyTemplate } from '../template';
@@ -16,11 +15,10 @@ import {
 	addExcludedFolder,
 	deleteExcludedFolder,
 	getDetachedFolder,
-	getExcludedFolder,
-	updateExcludedFolder,
 } from '../ExcludeFolders/functions/folderFunctions';
 import { ExcludedFolder } from '../ExcludeFolders/ExcludeFolder';
-import { getDefaultTemplate, openExcalidrawView } from './excalidraw';
+import { createFolderNoteFile, isTextTemplate } from './createFolderNoteFile';
+import { openExcalidrawView } from './excalidraw';
 import { AskForExtensionModal } from 'src/modals/AskForExtension';
 import {
 	addCSSClassToFileExplorerEl,
@@ -91,7 +89,7 @@ export async function createFolderNote(
 	}
 
 	if (!folderNote) {
-		folderNote = await handleCreateFolderNote(plugin, folderNoteType, openFile, leaf, folderNote, path, extension);
+		folderNote = await createFolderNoteFile(plugin, folderNoteType, path, extension);
 	} else {
 		await plugin.app.fileManager.renameFile(folderNote, path);
 	}
@@ -107,15 +105,15 @@ export async function createFolderNote(
 		}
 		await leaf.openFile(folderNote);
 		if (plugin.settings.folderNoteType === '.excalidraw' || extension === '.excalidraw') {
-			openExcalidrawView(plugin.app, folderNote);
+			await openExcalidrawView(plugin.app, folderNote);
 		}
 	}
 
 	const matchingExtension =
 		extension?.split('.').pop() ===
 		plugin.settings.templatePath.split('.').pop();
-	if (folderNote && matchingExtension && plugin.settings.folderNoteType !== '.excalidraw') {
-		applyTemplate(plugin, folderNote, leaf, plugin.settings.templatePath);
+	if (isTextTemplate(folderNote.extension) && matchingExtension && plugin.settings.folderNoteType !== '.excalidraw') {
+		await applyTemplate(plugin, folderNote, leaf, plugin.settings.templatePath);
 	}
 
 	const folder = plugin.app.vault.getAbstractFileByPath(folderPath);
@@ -135,7 +133,7 @@ function getArgs(
 	folderNote: TFile | null | undefined;
 	folderNoteType: string;
 	detachedFolder: ExcludedFolder | undefined;
-	path: string | '';
+	path: string;
 } {
 	const leaf = plugin.app.workspace.getLeaf(false);
 	const folderName = getFolderNameFromPathString(folderPath);
@@ -158,52 +156,6 @@ function getArgs(
 	};
 }
 
-async function handleCreateFolderNote(plugin: FolderNotesPlugin, folderNoteType: string, openFile: boolean, leaf: WorkspaceLeaf, folderNote: TFile | null | undefined, path: string, extension?: string): Promise<TFile> {
-	let content = '';
-	if (extension !== '.md' && extension) {
-		if (
-			plugin.settings.templatePath &&
-			folderNoteType.split('.').pop() ===
-			plugin.settings.templatePath.split('.').pop()
-		) {
-			const templateFile = plugin.app.vault.getAbstractFileByPath(
-				plugin.settings.templatePath,
-			);
-			if (templateFile instanceof TFile) {
-				if (['md', 'canvas', 'txt'].includes(templateFile.extension)) {
-					content = await plugin.app.vault.read(templateFile);
-					if (
-						extension === '.excalidraw' &&
-						!content.includes(
-							'==⚠  Switch to EXCALIDRAW VIEW in the MORE OPTIONS menu of this activeDocument. ⚠==',
-						)
-					) {
-						content = await getDefaultTemplate(plugin.app);
-					}
-				} else {
-					plugin.app.vault.readBinary(templateFile).then(async (data) => {
-						folderNote = await plugin.app.vault.createBinary(path, data);
-						if (openFile) {
-							await leaf.openFile(folderNote);
-						}
-						return folderNote;
-					});
-				}
-			}
-		} else if (
-			plugin.settings.folderNoteType === '.excalidraw' ||
-			extension === '.excalidraw'
-		) {
-			content = await getDefaultTemplate(plugin.app);
-		} else if (plugin.settings.folderNoteType === '.canvas') {
-			content = '{}';
-		}
-	}
-
-	folderNote = await plugin.app.vault.create(path, content);
-	return folderNote;
-}
-
 async function handleTurnNoteIntoFolderNote(
 	plugin: FolderNotesPlugin,
 	folderNote: TFile,
@@ -211,7 +163,7 @@ async function handleTurnNoteIntoFolderNote(
 	folderPath: string,
 	fileName: string,
 ): Promise<void> {
-	deleteExcludedFolder(plugin, detachedFolder);
+	await deleteExcludedFolder(plugin, detachedFolder);
 	removeCSSClassFromFileExplorerEL(folderNote?.path, 'is-folder-note', false, plugin);
 	const folder = plugin.app.vault.getAbstractFileByPath(folderPath);
 	if (!(folder instanceof TFolder)) return;
@@ -229,21 +181,7 @@ async function handleTurnNoteIntoFolderNote(
 		count++;
 		newName = `${baseName} (${count}).${ext}`;
 	}
-	const [
-		excludedFolder,
-		excludedFolderExisted,
-		disabledSync,
-	] = await tempDisableSync(plugin, folder);
-
-	await plugin.app.fileManager.renameFile(folderNote, newName).then(() => {
-		if (!excludedFolder) return;
-		if (!excludedFolderExisted) {
-			deleteExcludedFolder(plugin, excludedFolder);
-		} else if (!disabledSync) {
-			excludedFolder.disableSync = false;
-			updateExcludedFolder(plugin, excludedFolder, excludedFolder);
-		}
-	});
+	await renameWithoutSync(plugin.app.fileManager, folderNote, newName);
 }
 
 export async function turnIntoFolderNote(
@@ -266,27 +204,13 @@ export async function turnIntoFolderNote(
 		}
 		removeCSSClassFromFileExplorerEL(folderNote.path, 'is-folder-note', false, plugin);
 
-		const [
-			excludedFolder,
-			excludedFolderExisted,
-			disabledSync,
-		] = await tempDisableSync(plugin, folder);
-
 		const CTIME_SLICE_START = 10;
 		const RANDOM_SUFFIX_MAX = 1000;
 		const randomSuffix = Math.floor(Math.random() * RANDOM_SUFFIX_MAX);
 		const ctimeSuffix = file.stat.ctime.toString().slice(CTIME_SLICE_START);
 		const newPath = `${folder.path}/${folder.name} (${ctimeSuffix}${randomSuffix}).${extension}`;
 
-		plugin.app.fileManager.renameFile(folderNote, newPath).then(() => {
-			if (!excludedFolder) return;
-			if (!excludedFolderExisted) {
-				deleteExcludedFolder(plugin, excludedFolder);
-			} else if (!disabledSync) {
-				excludedFolder.disableSync = false;
-				updateExcludedFolder(plugin, excludedFolder, excludedFolder);
-			}
-		});
+		await renameWithoutSync(plugin.app.fileManager, folderNote, newPath);
 	}
 	const folderName = folder.name;
 	const fileName = plugin.settings.folderNoteName.replace('{{folder_name}}', folderName);
@@ -303,7 +227,7 @@ export async function turnIntoFolderNote(
 	}
 
 	if (detachedExcludedFolder) {
-		void deleteExcludedFolder(plugin, detachedExcludedFolder);
+		await deleteExcludedFolder(plugin, detachedExcludedFolder);
 	}
 
 	await plugin.app.fileManager.renameFile(file, path);
@@ -312,39 +236,6 @@ export async function turnIntoFolderNote(
 
 	removeActiveFolder(plugin);
 	setActiveFolder(folder.path, plugin);
-}
-
-export async function tempDisableSync(
-	plugin: FolderNotesPlugin,
-	folder: TFolder,
-): Promise<
-	[
-		excludedFolder: ExcludedFolder | undefined,
-		excludedFolderExisted: boolean,
-		disabledSync: boolean
-	]
-> {
-	let excludedFolder = getExcludedFolder(plugin, folder.path, false);
-	let excludedFolderExisted = true;
-	let disabledSync = false;
-
-	if (!excludedFolder) {
-		excludedFolderExisted = false;
-		excludedFolder = new ExcludedFolder(
-			folder.path,
-			plugin.settings.excludeFolders.length,
-			undefined,
-			plugin,
-		);
-		excludedFolder.disableSync = true;
-		addExcludedFolder(plugin, excludedFolder);
-	} else if (!excludedFolder.disableSync) {
-		disabledSync = false;
-		excludedFolder.disableSync = true;
-		updateExcludedFolder(plugin, excludedFolder, excludedFolder);
-	}
-
-	return [excludedFolder, excludedFolderExisted, disabledSync];
 }
 
 export async function openFolderNote(
@@ -398,7 +289,7 @@ export async function deleteFolderNote(
 
 	plugin.settings.excludeFolders = plugin.settings.excludeFolders.filter(
 		(excludedFolder) => (excludedFolder.path !== folder.path) || !excludedFolder.showFolderNote);
-	plugin.saveSettings(false);
+	await plugin.saveSettings(false);
 
 	removeCSSClassFromFileExplorerEL(folder.path, 'has-folder-note', false, plugin);
 	switch (plugin.settings.deleteFilesAction) {

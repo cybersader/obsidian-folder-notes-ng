@@ -28,9 +28,9 @@ export async function handleCreate(file: TAbstractFile, plugin: FolderNotesPlugi
 	}
 
 	if (file instanceof TFile) {
-		handleFileCreation(file, plugin);
+		await handleFileCreation(file, plugin);
 	} else if (file instanceof TFolder && plugin.settings.autoCreate) {
-		handleFolderCreation(file, plugin);
+		await handleFolderCreation(file, plugin);
 	}
 }
 
@@ -42,7 +42,7 @@ async function handleFileCreation(file: TFile, plugin: FolderNotesPlugin): Promi
 		if (await shouldSkipFileWrap(plugin, file)) { return; }
 		const newFolder = await createNamedFolderForFile(plugin, file);
 		if (!newFolder) { return; }
-		turnIntoFolderNote(plugin, file, newFolder);
+		await turnIntoFolderNote(plugin, file, newFolder);
 	} else if (folder instanceof TFolder) {
 		if (folder.children.length >= 1) {
 			removeCSSClassFromFileExplorerEL(folder.path, 'fn-empty-folder', false, plugin);
@@ -61,7 +61,7 @@ async function handleFileCreation(file: TFile, plugin: FolderNotesPlugin): Promi
 			if (await shouldSkipFileWrap(plugin, file)) { return; }
 			const newFolder = await createNamedFolderForFile(plugin, file);
 			if (!newFolder) { return; }
-			turnIntoFolderNote(plugin, file, newFolder);
+			await turnIntoFolderNote(plugin, file, newFolder);
 		}
 	}
 }
@@ -131,6 +131,6 @@ async function handleFolderCreation(folder: TFolder, plugin: FolderNotesPlugin):
 	if (!(plugin.app.vault.getAbstractFileByPath(folder.path) instanceof TFolder)) return;
 	if (getFolderNote(plugin, folder.path)) return;
 
-	void createFolderNote(plugin, folder.path, openFile, undefined, true);
+	await createFolderNote(plugin, folder.path, openFile, undefined, true);
 	addCSSClassToFileExplorerEl(folder.path, 'has-folder-note', false, plugin);
 }

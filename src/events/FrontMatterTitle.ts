@@ -1,3 +1,4 @@
+import { reportAsyncError } from '../functions/reportAsyncError';
 import type FolderNotesPlugin from 'src/main';
 import {
 	type Listener,
@@ -68,7 +69,7 @@ export class FrontMatterTitlePluginHandler {
 				// });
 				plugin.updateAllBreadcrumbs();
 			}
-		})();
+		})().catch(reportAsyncError);
 	}
 
 	deleteEvent(): void {
@@ -76,7 +77,7 @@ export class FrontMatterTitlePluginHandler {
 			this.dispatcher.removeListener(this.eventRef);
 		}
 	}
-	async fmptUpdateFileName(data: UpdateData, isEvent: boolean): Promise<void> {
+	fmptUpdateFileName(data: UpdateData, isEvent: boolean): void {
 		const hasNestedData = 'data' in (data as unknown as Record<string, unknown>);
 		const actualData: UpdateData = hasNestedData
 			? (data as unknown as WrappedUpdateData).data
@@ -115,7 +116,7 @@ export class FrontMatterTitlePluginHandler {
 
 	}
 
-	async fmptUpdateFolderName(data: UpdateData, _replacePath: boolean): Promise<void> {
+	fmptUpdateFolderName(data: UpdateData, _replacePath: boolean): void {
 		const hasNestedData = 'data' in (data as unknown as Record<string, unknown>);
 		const actualData: UpdateData = hasNestedData
 			? (data as unknown as WrappedUpdateData).data

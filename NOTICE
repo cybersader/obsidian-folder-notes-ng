@@ -1,0 +1,26 @@
+Folder Notes NG is a modified distribution of Lost Paul's Folder Notes and
+includes Folder Overview by Lost Paul. NG added sync-safe creation in June
+2026 and changed template writes and rename handling in November 2026.
+This NG distribution is maintained independently of the upstream projects.
+
+License: GNU Affero General Public License, version 3. See LICENSE.
+The program is provided without warranty as described in that license.
+NG source and build instructions: https://github.com/cybersader/obsidian-folder-notes-ng
+For a release, use its version tag and initialize the submodules recursively.
+Upstream: https://github.com/LostPaul/obsidian-folder-notes
+Folder Overview: https://github.com/LostPaul/obsidian-folder-overview
+
+Third-party code in the plugin bundle:
+front-matter-plugin-api-provider 0.1.4-alpha, by snezhig — ISC license
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.

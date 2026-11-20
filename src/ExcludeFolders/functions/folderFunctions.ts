@@ -126,7 +126,7 @@ export function getExcludedFolder(
 		excluded = applyWhitelistOverrides(excluded, whitelist);
 	}
 
-	return defaultExcludedIfEmpty(excluded) as ExcludedFolder | ExcludePattern | undefined;
+	return defaultExcludedIfEmpty(excluded);
 }
 
 export function getDetachedFolder(
@@ -238,9 +238,9 @@ export function addExcludeFolderListItem(
 		cb.containerEl.addClass('fn-exclude-folder-path');
 		cb.setPlaceholder('Folder path');
 		cb.setValue(excludedFolder.path || '');
-		cb.onChange((value) => {
+		cb.onChange(async (value) => {
 			if (value.startsWith('{regex}') || value.includes('*')) {
-				deleteExcludedFolder(plugin, excludedFolder);
+				await deleteExcludedFolder(plugin, excludedFolder);
 				const pattern = new ExcludePattern(
 					value,
 					plugin.settings.excludeFolders.length,
@@ -319,8 +319,8 @@ export function addExcludeFolderListItem(
 	setting.addButton((cb) => {
 		cb.setIcon('trash-2');
 		cb.setTooltip('Delete excluded folder');
-		cb.onClick(() => {
-			deleteExcludedFolder(plugin, excludedFolder);
+		cb.onClick(async () => {
+			await deleteExcludedFolder(plugin, excludedFolder);
 			setting.clear();
 			setting.settingEl.remove();
 		});

@@ -1,3 +1,4 @@
+import { reportAsyncError } from '../functions/reportAsyncError';
 import { Modal, type App, type TFolder } from 'obsidian';
 import type FolderNotesPlugin from '../main';
 export default class NewFolderNameModal extends Modal {
@@ -45,7 +46,7 @@ export default class NewFolderNameModal extends Modal {
 
 		const buttonContainer = this.modalEl.createDiv({ cls: 'modal-button-container' });
 		const saveButton = buttonContainer.createEl('button', { text: 'Save', cls: 'mod-cta' });
-		saveButton.addEventListener('click', async () => {
+		saveButton.addEventListener('click', () => {
 			this.saveFolderName();
 			this.close();
 		});
@@ -75,7 +76,7 @@ export default class NewFolderNameModal extends Modal {
 				);
 				const newFolderPath = folderBasePath + newName.trim();
 				if (!this.app.vault.getAbstractFileByPath(newFolderPath)) {
-					this.plugin.app.fileManager.renameFile(this.folder, newFolderPath);
+					this.plugin.app.fileManager.renameFile(this.folder, newFolderPath).catch(reportAsyncError);
 				}
 			}
 		}

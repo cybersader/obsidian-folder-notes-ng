@@ -31,6 +31,9 @@ export const config: Options.Testrunner = {
   capabilities: [{
     browserName: 'obsidian',
     browserVersion: 'latest',
+    ...(process.env.CI && process.platform === 'linux' ? {
+      'goog:chromeOptions': { args: ['--disable-gpu', '--disable-dev-shm-usage'] },
+    } : {}),
     'wdio:obsidianOptions': {
       installerVersion: 'earliest', // matches manifest.json minAppVersion (1.4.10)
       vault: path.resolve('./test-vault'),
@@ -63,7 +66,8 @@ export const config: Options.Testrunner = {
     if (result.error) {
       const { mkdirSync } = await import('node:fs');
       mkdirSync(path.resolve('./test-results'), { recursive: true });
-      await browser.saveScreenshot(path.resolve(`./test-results/failure-${process.hrtime.bigint()}.png`));
+      const { saveAppScreenshot } = await import('./tests/e2e/settings-screenshot');
+      await saveAppScreenshot(path.resolve(`./test-results/failure-${process.hrtime.bigint()}.png`));
     }
   },
 };

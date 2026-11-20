@@ -74,7 +74,7 @@ export function getWhitelistedFolderByPattern(
 		plugin.settings.whitelistFolders
 			.filter((s) => s.type === 'pattern')
 			.find((pattern) => matchesPatternSpec(pattern.string, folderName))
-	) as WhitelistedPattern | undefined;
+	);
 }
 
 export function getWhitelistedFoldersByPattern(
@@ -85,7 +85,7 @@ export function getWhitelistedFoldersByPattern(
 		plugin.settings.whitelistFolders
 			.filter((s) => s.type === 'pattern')
 			.filter((pattern) => matchesPatternSpec(pattern.string, folderName))
-	) as WhitelistedPattern[];
+	);
 }
 
 export function addWhitelistedPatternListItem(
@@ -132,8 +132,8 @@ export function addWhitelistedPatternListItem(
 				if (oldPattern.type === 'pattern') {
 					updateWhitelistedPattern(
 						plugin,
-						oldPattern as WhitelistedPattern,
-						oldPattern as WhitelistedPattern,
+						oldPattern,
+						oldPattern,
 					);
 				} else {
 					updateWhitelistedFolder(plugin, oldPattern, oldPattern);
@@ -161,8 +161,8 @@ export function addWhitelistedPatternListItem(
 				if (oldPattern.type === 'pattern') {
 					updateWhitelistedPattern(
 						plugin,
-						oldPattern as WhitelistedPattern,
-						oldPattern as WhitelistedPattern,
+						oldPattern,
+						oldPattern,
 					);
 				} else {
 					updateWhitelistedFolder(plugin, oldPattern, oldPattern);

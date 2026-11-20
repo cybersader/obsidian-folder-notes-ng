@@ -1,3 +1,4 @@
+import { reportAsyncError } from './reportAsyncError';
 import { TFile, TFolder } from 'obsidian';
 import type FolderNotesPlugin from '../main';
 import {
@@ -18,9 +19,9 @@ export function refreshAllFolderStyles(forceReload = false, plugin: FolderNotesP
 	if (!fileExplorer) { return; }
 	if (plugin.activeFileExplorer === fileExplorer && !forceReload) { return; }
 	plugin.activeFileExplorer = fileExplorer;
-	plugin.app.vault.getAllLoadedFiles().forEach(async (file) => {
+	plugin.app.vault.getAllLoadedFiles().forEach((file) => {
 		if (file instanceof TFolder) {
-			await updateCSSClassesForFolder(file.path, plugin);
+			updateCSSClassesForFolder(file.path, plugin);
 		}
 	});
 }
@@ -28,11 +29,10 @@ export function refreshAllFolderStyles(forceReload = false, plugin: FolderNotesP
 /**
  * @description Updates the CSS classes for a specific folder in the file explorer.
  */
-// eslint-disable-next-line complexity
-export async function updateCSSClassesForFolder(
+export function updateCSSClassesForFolder(
 	folderPath: string,
 	plugin: FolderNotesPlugin,
-): Promise<void> {
+): void {
 	const folder = plugin.app.vault.getAbstractFileByPath(folderPath);
 	if (!folder || !(folder instanceof TFolder)) { return; }
 
@@ -75,10 +75,10 @@ export async function updateCSSClassesForFolder(
 /**
  * @description Updates the CSS classes for a folder note file in the file explorer and then also updates the folder it belongs to.
  */
-export async function updateCSSClassesForFolderNote(
+export function updateCSSClassesForFolderNote(
 	filePath: string,
 	plugin: FolderNotesPlugin,
-): Promise<void> {
+): void {
 	const file = plugin.app.vault.getAbstractFileByPath(filePath);
 	if (!file || !(file instanceof TFile)) { return; }
 
@@ -137,22 +137,23 @@ export function clearFolderNoteClassesFromFolder(folder: TFolder, plugin: Folder
  * @param path Can be a folder or file path
  * @returns nothing
  */
-export async function addCSSClassToFileExplorerEl(
+export function addCSSClassToFileExplorerEl(
 	path: string,
 	cssClass: string,
 	parent = false,
 	plugin: FolderNotesPlugin,
 	waitForCreate = false,
 	count = 0,
-): Promise<void> {
+): void {
 	const fileExplorerItem = getFileExplorerElement(path, plugin);
 	const MAX_RETRIES = 5;
 	const RETRY_DELAY = 500;
 
 	if (!fileExplorerItem) {
 		if (waitForCreate && count < MAX_RETRIES) {
-			await new Promise((r) => window.setTimeout(r, RETRY_DELAY));
-			addCSSClassToFileExplorerEl(path, cssClass, parent, plugin, waitForCreate, count + 1);
+			window.setTimeout(() => addCSSClassToFileExplorerEl(
+				path, cssClass, parent, plugin, waitForCreate, count + 1,
+			), RETRY_DELAY);
 			return;
 		}
 		return;
@@ -231,7 +232,7 @@ export function showFolderNoteInFileExplorer(path: string, plugin: FolderNotesPl
 export function hideFolderNoteInFileExplorer(folderPath: string, plugin: FolderNotesPlugin): void {
 	plugin.settings.excludeFolders = plugin.settings.excludeFolders.filter(
 		(folder) => (folder.path !== folderPath) || !folder.showFolderNote);
-	plugin.saveSettings(false);
+	plugin.saveSettings(false).catch(reportAsyncError);
 	removeCSSClassFromFileExplorerEL(folderPath, 'show-folder-note-in-explorer', true, plugin);
 	updateCSSClassesForFolder(folderPath, plugin);
 }

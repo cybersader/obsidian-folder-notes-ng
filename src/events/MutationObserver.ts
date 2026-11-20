@@ -1,3 +1,5 @@
+import { reportAsyncError } from '../functions/reportAsyncError';
+import { isHTMLElement } from '../functions/isHTMLElement';
 import { Keymap, Platform } from 'obsidian';
 import type FolderNotesPlugin from 'src/main';
 import { getFolderNote, getFolderNoteFolder } from 'src/functions/folderNoteFunctions';
@@ -23,7 +25,7 @@ export function registerFileExplorerObserver(plugin: FolderNotesPlugin): void {
 			if (!activeLeaf) return;
 
 			const titleContainer = activeLeaf.querySelector('.view-header-title-container');
-			if (!(titleContainer instanceof HTMLElement)) return;
+			if (!titleContainer?.instanceOf(HTMLElement)) return;
 
 			updateFolderNamesInPath(plugin, titleContainer);
 		}),
@@ -68,7 +70,7 @@ function observeFolderTitleMutations(plugin: FolderNotesPlugin): void {
 		}
 	});
 
-	fileExplorerMutationObserver.observe(document, { childList: true, subtree: true });
+	fileExplorerMutationObserver.observe(activeDocument, { childList: true, subtree: true });
 }
 
 function initializeAllFolderTitles(plugin: FolderNotesPlugin): void {
@@ -110,16 +112,16 @@ function processAddedFolders(node: HTMLElement, plugin: FolderNotesPlugin): void
 	});
 }
 
-async function setupFolderTitle(
+function setupFolderTitle(
 	folderTitle: HTMLElement,
 	plugin: FolderNotesPlugin,
 	folderPath: string,
-): Promise<void> {
+): void {
 	if (folderTitle.dataset.initialized === 'true') return;
 	if (!folderPath) return;
 
 	folderTitle.dataset.initialized = 'true';
-	await updateCSSClassesForFolder(folderPath, plugin);
+	updateCSSClassesForFolder(folderPath, plugin);
 
 	if (plugin.settings.frontMatterTitle.enabled) {
 		plugin.fmtpHandler?.fmptUpdateFolderName(
@@ -135,7 +137,7 @@ async function setupFolderTitle(
 		plugin.mouseEvent = event;
 
 		if (!Keymap.isModEvent(event)) return;
-		if (!(event.target instanceof HTMLElement)) return;
+		if (!isHTMLElement(event.target)) return;
 
 		const folderNote = getFolderNote(plugin, folderPath);
 		if (!folderNote) return;
@@ -158,11 +160,10 @@ async function setupFolderTitle(
 	});
 }
 
-// eslint-disable-next-line complexity
-async function updateFolderNamesInPath(
+function updateFolderNamesInPath(
 	plugin: FolderNotesPlugin,
 	titleContainer: HTMLElement,
-): Promise<void> {
+): void {
 	const titleParent = titleContainer.querySelector('.view-header-title-parent');
 	let path = '';
 	const TRAILING_SLASH_LENGTH = 1;
@@ -172,7 +173,7 @@ async function updateFolderNamesInPath(
 	}
 
 	for (const breadcrumb of Array.from(titleParent?.childNodes ?? [])) {
-		if (!(breadcrumb instanceof HTMLElement)) continue;
+		if (!breadcrumb.instanceOf(HTMLElement)) continue;
 		if (breadcrumb.classList.contains('view-header-breadcrumb-separator')) {
 			if (breadcrumb.nextSibling === null) {
 				breadcrumb.classList.add('is-last-separator');
@@ -207,7 +208,7 @@ async function updateFolderNamesInPath(
 		breadcrumb?.setAttribute('data-path', path.slice(0, -TRAILING_SLASH_LENGTH));
 		if (!breadcrumb.onclick) {
 			breadcrumb.addEventListener('click', (e) => {
-				handleViewHeaderClick(e, plugin);
+				handleViewHeaderClick(e, plugin).catch(reportAsyncError);
 			}, { capture: true });
 		}
 
@@ -225,12 +226,12 @@ async function updateFolderNamesInPath(
 // - options: Optional object with a 'timeout' property (in milliseconds).
 function scheduleIdle(callback: () => void, options?: { timeout: number }): void {
 	const DEFAULT_IDLE_TIMEOUT = 200;
-	if ('requestIdleCallback' in window) {
+	if (typeof window.requestIdleCallback === 'function') {
 		const windowWithIdle = window as Window & {
 			requestIdleCallback: (callback: () => void, options?: { timeout: number }) => void
 		};
 		windowWithIdle.requestIdleCallback(callback, options);
 	} else {
-		globalThis.setTimeout(callback, options?.timeout || DEFAULT_IDLE_TIMEOUT);
+		window.setTimeout(callback, options?.timeout || DEFAULT_IDLE_TIMEOUT);
 	}
 }

@@ -1,7 +1,8 @@
-# Overview
-Folder Notes is a plugin for the note-taking app [Obsidian](https://obsidian.md/) that allows you to attach notes directly to folders. This lets you open a note by clicking on a folder name—similar to the functionality found in [Notion](https://www.notion.so/).
+# Folder Notes NG
 
-Unlike other “folder note” plugins, Folder Notes offers several unique features, including support for custom file types, templating, and advanced folder handling options.
+![Folder Notes NG logo](assets/folder-notes-ng.svg){ width="96" height="96" }
+
+Attach a note to a folder in [Obsidian](https://obsidian.md/) and click the folder name to open it. Folder Notes NG is a fork of [LostPaul’s Folder Notes](https://github.com/LostPaul/obsidian-folder-notes). It adds sync safety for automatic note creation when a folder arrives before its note.
 
 ## Get started 
 

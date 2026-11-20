@@ -1,6 +1,6 @@
 import {
 	Notice, PluginSettingTab, TFile,
-	TFolder, type App, type MarkdownPostProcessorContext,
+	TFolder, type App, type Setting,
 } from 'obsidian';
 import type FolderNotesPlugin from '../main';
 import type { ExcludePattern } from 'src/ExcludeFolders/ExcludePattern';
@@ -283,33 +283,36 @@ export class SettingsTab extends PluginSettingTab {
 		}
 	}
 
-	display(
-		contentEl?: HTMLElement,
-		yaml?: defaultOverviewSettings,
-		plugin?: FolderNotesPlugin,
-		defaultSettings?: boolean,
-		display?: CallableFunction,
-		el?: HTMLElement,
-		ctx?: MarkdownPostProcessorContext,
-		file?: TFile | null,
-		settingsTab?: this,
-	): void {
-		plugin = this?.plugin ?? plugin;
-		if (plugin) {
-			plugin.settingsOpened = true;
-		}
-		settingsTab = this ?? settingsTab;
-		const { containerEl } = settingsTab;
-		if (plugin && !plugin.settings.persistentSettingsTab.afterChangingTab) {
+	// Obsidian 1.13+ indexes this panel and its section names for settings search.
+	getSettingDefinitions() {
+		return [{
+			name: 'Folder note preferences',
+			aliases: ['Sync safety', 'Auto-create', 'Templates', ...Object.values(this.TABS).map(tab => tab.name)],
+			render: (setting: Setting): void => {
+				setting.settingEl.addClass('fn-settings-panel');
+				this.renderTabs(setting.settingEl);
+			},
+		}];
+	}
+
+	// Older Obsidian calls display() directly. Our controls also use it to refresh.
+	display(): void {
+		this.renderTabs(this.containerEl.querySelector<HTMLElement>('.fn-settings-panel') ?? this.containerEl);
+	}
+
+	private renderTabs(containerEl: HTMLElement): void {
+		const { plugin } = this;
+		plugin.settingsOpened = true;
+		if (!plugin.settings.persistentSettingsTab.afterChangingTab) {
 			plugin.settings.settingsTab = this.TABS.GENERAL.id;
 		}
 
 		containerEl.empty();
 
 		const tabBar = containerEl.createEl('nav', { cls: 'fn-settings-tab-bar' });
-		for (const [tabId, tabInfo] of Object.entries(settingsTab.TABS)) {
-			const tabEl = tabBar.createEl('div', { cls: 'fn-settings-tab' });
-			tabEl.createEl('div', { cls: 'fn-settings-tab-name', text: tabInfo.name });
+		for (const [tabId, tabInfo] of Object.entries(this.TABS)) {
+			const tabEl = tabBar.createDiv({ cls: 'fn-settings-tab' });
+			tabEl.createDiv({ cls: 'fn-settings-tab-name', text: tabInfo.name });
 			if (
 				plugin &&
 				plugin.settings.settingsTab.toLocaleLowerCase() ===
@@ -325,16 +328,15 @@ export class SettingsTab extends PluginSettingTab {
 					void plugin.saveSettings();
 				}
 				tabEl.addClass('fn-settings-tab-active');
-				if (!settingsTab) { return; }
-				settingsTab.renderSettingsPage(tabId);
+				this.renderSettingsPage(tabId);
 			});
 		}
-		settingsTab.settingsPage = containerEl.createDiv({ cls: 'fn-settings-page' });
+		this.settingsPage = containerEl.createDiv({ cls: 'fn-settings-page' });
 		if (plugin) {
 			if (plugin.settings.persistentSettingsTab) {
-				settingsTab.renderSettingsPage(plugin.settings.settingsTab);
+				this.renderSettingsPage(plugin.settings.settingsTab);
 			} else {
-				settingsTab.renderSettingsPage(this.TABS.GENERAL.id);
+				this.renderSettingsPage(this.TABS.GENERAL.id);
 			}
 		}
 	}

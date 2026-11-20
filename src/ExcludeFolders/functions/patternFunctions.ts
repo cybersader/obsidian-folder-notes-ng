@@ -72,7 +72,7 @@ export function getExcludedFoldersByPattern(
 ): ExcludePattern[] {
 	return plugin.settings.excludeFolders
 		.filter((s) => s.type === 'pattern')
-		.filter((pattern) => matchesPatternSpec(pattern.string, folderName)) as ExcludePattern[];
+		.filter((pattern) => matchesPatternSpec(pattern.string, folderName));
 }
 
 export function getExcludedFolderByPattern(
@@ -83,7 +83,7 @@ export function getExcludedFolderByPattern(
 		plugin.settings.excludeFolders
 			.filter((s) => s.type === 'pattern')
 			.find((pattern) => matchesPatternSpec(pattern.string, folderName))
-	) as ExcludePattern | undefined;
+	);
 }
 
 export function addExcludePatternListItem(
@@ -125,7 +125,7 @@ export function addExcludePatternListItem(
 				if (oldPattern) {
 					oldPattern.position += 1;
 					if (oldPattern.type === 'pattern') {
-						const pat = oldPattern as ExcludePattern;
+						const pat = oldPattern;
 						updatePattern(
 							plugin,
 							pat,
@@ -155,7 +155,7 @@ export function addExcludePatternListItem(
 				if (oldPattern) {
 					oldPattern.position -= 1;
 					if (oldPattern.type === 'pattern') {
-						const pat = oldPattern as ExcludePattern;
+						const pat = oldPattern;
 						updatePattern(
 							plugin,
 							pat,

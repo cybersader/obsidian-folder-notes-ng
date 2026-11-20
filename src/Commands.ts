@@ -111,7 +111,7 @@ export class Commands {
 
 		this.plugin.addCommand({
 			id: 'toggle-auto-create-folder-notes',
-			name: 'Toggle auto-create of folder notes',
+			name: 'Toggle automatic note creation',
 			callback: async () => {
 				this.plugin.settings.autoCreate = !this.plugin.settings.autoCreate;
 				await this.plugin.saveSettings();
@@ -285,7 +285,6 @@ export class Commands {
 					const blacklist = ['*', '\\', '"', '/', '<', '>', '?', '|', ':'];
 					for (const char of blacklist) {
 						if (text.includes(char)) {
-							// eslint-disable-next-line max-len
 							new Notice('File name cannot contain any of the following characters: * " \\ / < > : | ?');
 							return false;
 						}
@@ -342,7 +341,6 @@ export class Commands {
 
 	fileCommands(): void {
 		this.plugin.registerEvent(
-			// eslint-disable-next-line complexity
 			this.app.workspace.on('file-menu', (menu: Menu, file: TAbstractFile) => {
 				let folder: TAbstractFile | TFolder | null = file.parent;
 				if (file instanceof TFile) {
@@ -371,7 +369,6 @@ export class Commands {
 					}
 				}
 
-				// eslint-disable-next-line complexity
 				const addFolderNoteActions = (folderMenu: Menu): void => {
 					if (file instanceof TFile) {
 						folderMenu.addItem((item) => {
@@ -583,7 +580,6 @@ export class Commands {
 	}
 
 	editorCommands(): void {
-		// eslint-disable-next-line max-len
 		this.plugin.registerEvent(this.plugin.app.workspace.on('editor-menu', (menu: Menu, editor: Editor, view: MarkdownEditorContext) => {
 			const text = editor.getSelection().trim();
 			if (!text || text.trim() === '') return;
@@ -596,7 +592,6 @@ export class Commands {
 						const blacklist = ['*', '\\', '"', '/', '<', '>', '?', '|', ':'];
 						for (const char of blacklist) {
 							if (text.includes(char)) {
-								// eslint-disable-next-line max-len
 								new Notice('File name cannot contain any of the following characters: * " \\ / < > : | ?');
 								return;
 							}

@@ -1,7 +1,8 @@
-site_name: Obsidian folder notes
+site_name: Folder Notes NG
 theme:
   name: material
-  logo: assets/2023_Obsidian_logo.svg.png
+  logo: assets/folder-notes-ng.svg
+  favicon: assets/folder-notes-ng.svg
   features:
     - navigation.expand
   palette:

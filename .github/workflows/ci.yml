@@ -1,0 +1,62 @@
+name: Plugin CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plugin-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-tree:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: python3 scripts/test-public-tree.py && python3 scripts/check-public-tree.py
+      - name: Scan reachable history for secrets (local, redacted)
+        shell: bash
+        run: |
+          set -euo pipefail
+          temp=$(mktemp -d)
+          curl -fsSL --retry 2 https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz -o "$temp/archive.tgz"
+          printf 'a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb  %s/archive.tgz\n' "$temp" | sha256sum --check --status
+          tar -xzf "$temp/archive.tgz" -C "$temp" gitleaks
+          "$temp/gitleaks" git --log-opts=HEAD --redact=100 --no-banner .
+
+  plugin:
+    name: ${{ matrix.check }}
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [obsidian-lint, build-and-unit, obsidian-e2e]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.23.1'
+      - if: matrix.check == 'build-and-unit'
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.3.14'
+      - run: npm ci --no-audit --no-fund
+      - if: matrix.check == 'obsidian-lint'
+        run: npm run lint
+      - if: matrix.check == 'build-and-unit'
+        run: npm run build && npm run test:unit
+      - if: matrix.check == 'obsidian-e2e'
+        run: xvfb-run -a npm run e2e

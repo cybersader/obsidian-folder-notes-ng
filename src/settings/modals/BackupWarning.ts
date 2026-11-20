@@ -31,7 +31,6 @@ export default class BackupWarningModal extends Modal {
 
 		contentEl.createEl('p', { text: this.desc });
 
-		// eslint-disable-next-line max-len
 		contentEl.createEl('p', { text: 'Make sure to backup your vault before using this feature.' }).addClass('fn-warning-text');
 
 		const buttonContainer = contentEl.createDiv({ cls: 'fn-modal-button-container' });

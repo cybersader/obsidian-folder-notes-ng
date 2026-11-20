@@ -1,13 +1,13 @@
+import { isInternalRename, renameWithoutSync } from './internalRename';
 import { TFile, TFolder, Notice, type TAbstractFile } from 'obsidian';
 import type FolderNotesPlugin from 'src/main';
 import {
 	extractFolderName, getFolderNote, getFolderNoteFolder,
 } from '../functions/folderNoteFunctions';
 import {
-	getExcludedFolder, addExcludedFolder,
-	updateExcludedFolder, deleteExcludedFolder, getDetachedFolder,
+	getExcludedFolder, getDetachedFolder,
 } from '../ExcludeFolders/functions/folderFunctions';
-import { ExcludedFolder } from 'src/ExcludeFolders/ExcludeFolder';
+import type { ExcludedFolder } from 'src/ExcludeFolders/ExcludeFolder';
 import {
 	removeCSSClassFromFileExplorerEL, addCSSClassToFileExplorerEl,
 	markFileAsFolderNote, unmarkFileAsFolderNote,
@@ -18,11 +18,11 @@ import {
 	getFolderPathFromString, removeExtension, getFileNameFromPathString,
 } from 'src/functions/utils';
 
-export function handleRename(
+export async function handleRename(
 	file: TAbstractFile,
 	oldPath: string,
 	plugin: FolderNotesPlugin,
-): void {
+): Promise<void> {
 	let folder = file.parent;
 	const oldFolder = plugin.app.vault.getAbstractFileByPath(getFolderPathFromString(oldPath));
 
@@ -45,20 +45,18 @@ export function handleRename(
 	if (file instanceof TFolder) {
 		folder = file;
 		plugin.tabManager.updateTab(folder.path);
-		updateExcludedFolderPath(folder, oldPath, plugin);
+		await updateExcludedFolderPath(folder, oldPath, plugin);
 		if (isFolderRename(folder, oldPath)) {
-			handleFolderRename(folder, oldPath, plugin);
-			return;
+			return handleFolderRename(folder, oldPath, plugin);
 		}
 		return handleFolderMove(folder, oldPath, plugin);
 
 	} else if (file instanceof TFile) {
+		if (isInternalRename(file, oldPath)) return;
 		if (isFileRename(file, oldPath)) {
-			handleFileRename(file, oldPath, plugin);
-			return;
+			return handleFileRename(file, oldPath, plugin);
 		}
-		handleFileMove(file, oldPath, plugin);
-		return;
+		return handleFileMove(file, oldPath, plugin);
 
 	}
 }
@@ -82,7 +80,7 @@ function isFolderRename(folder: TFolder, oldPath: string): boolean {
 	return oldParent === newParent && oldName !== newName;
 }
 
-export function handleFolderMove(file: TFolder, oldPath: string, plugin: FolderNotesPlugin): void {
+export async function handleFolderMove(file: TFolder, oldPath: string, plugin: FolderNotesPlugin): Promise<void> {
 	if (plugin.settings.storageLocation === 'insideFolder') { return; }
 	if (!plugin.settings.syncMove) { return; }
 	const folderNote = getFolderNote(plugin, oldPath, plugin.settings.storageLocation);
@@ -97,10 +95,9 @@ export function handleFolderMove(file: TFolder, oldPath: string, plugin: FolderN
 		newPath = `${newFolder.parent?.path}/${folderNote.name}`;
 	}
 
-	plugin.app.fileManager.renameFile(folderNote, newPath);
+	await plugin.app.fileManager.renameFile(folderNote, newPath);
 }
 
-// eslint-disable-next-line complexity
 export async function handleFileMove(
 	file: TFile,
 	oldPath: string,
@@ -119,9 +116,7 @@ export async function handleFileMove(
 	const isFileWithExistingNote = folderName === newFolder?.name && folderNote;
 
 	if (isFileWithExistingNote) {
-		renameExistingFolderNote(
-			file, oldPath, plugin, excludedFolder, oldFolder,
-		);
+		await renameWithoutSync(plugin.app.fileManager, file, oldPath);
 	} else if (isFolderNoteInNewFolder) {
 		if (excludedFolder?.disableFolderNote) { return; }
 		markFileAsFolderNote(file, plugin);
@@ -174,41 +169,6 @@ function getArgs(plugin: FolderNotesPlugin, file: TFile, oldPath: string): {
 	};
 }
 
-function renameExistingFolderNote(
-	file: TFile, oldPath: string, plugin: FolderNotesPlugin,
-	excludedFolder: ExcludedFolder | undefined,
-	oldFolder: TAbstractFile | null,
-): void {
-	let excludedFolderExisted = true;
-	let disabledSync = false;
-
-	if (!excludedFolder) {
-		excludedFolderExisted = false;
-		excludedFolder = new ExcludedFolder(
-			oldFolder?.path || '',
-			plugin.settings.excludeFolders.length,
-			undefined,
-			plugin,
-		);
-		addExcludedFolder(plugin, excludedFolder);
-	} else if (!excludedFolder.disableSync) {
-		disabledSync = false;
-		excludedFolder.disableSync = true;
-		updateExcludedFolder(plugin, excludedFolder, excludedFolder);
-	}
-	plugin.app.fileManager.renameFile(file, oldPath).then(() => {
-		if (!excludedFolder) { return; }
-		if (!excludedFolderExisted) {
-			deleteExcludedFolder(plugin, excludedFolder);
-		} else if (!disabledSync) {
-			excludedFolder.disableSync = false;
-			updateExcludedFolder(plugin, excludedFolder, excludedFolder);
-		}
-	});
-}
-
-
-
 export async function handleFolderRename(
 	file: TFolder, oldPath: string, plugin: FolderNotesPlugin,
 ): Promise<void> {
@@ -247,10 +207,9 @@ export async function handleFolderRename(
 		folderNote.path = `${file.path}/${folderNote.name}`;
 		newPath = `${file.path}/${fileName}.${folderNote.extension}`;
 	}
-	plugin.app.fileManager.renameFile(folderNote, newPath);
+	await plugin.app.fileManager.renameFile(folderNote, newPath);
 }
 
-// eslint-disable-next-line complexity
 export async function handleFileRename(
 	file: TFile,
 	oldPath: string,
@@ -338,14 +297,14 @@ async function renameFolderOnFileRename(
 		new Notice('A folder with the same name already exists');
 		return;
 	}
-	plugin.app.fileManager.renameFile(oldFolder, newFolderPath);
+	await plugin.app.fileManager.renameFile(oldFolder, newFolderPath);
 }
 
-function updateExcludedFolderPath(
+async function updateExcludedFolderPath(
 	folder: TFolder,
 	oldPath: string,
 	plugin: FolderNotesPlugin,
-): void {
+): Promise<void> {
 	const excludedFolders = plugin.settings.excludeFolders.filter(
 		(excludedFolder) => excludedFolder.path?.includes(oldPath),
 	);
@@ -364,7 +323,7 @@ function updateExcludedFolderPath(
 		folders[folders.indexOf(folder.name)] = folder.name;
 		excludedFolder.path = folders.join('/');
 	});
-	plugin.saveSettings();
+	if (excludedFolders.length) await plugin.saveSettings();
 }
 
 
