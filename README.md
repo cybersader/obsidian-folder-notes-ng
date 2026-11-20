@@ -2,7 +2,7 @@
   <img src="docs/docs/assets/folder-notes-ng.svg" width="128" height="128" alt="Folder Notes NG: a cream note on an amethyst folder">
 </p>
 <h1 align="center">Folder Notes NG</h1>
-<p align="center">Click a folder in Obsidian to open its note.</p>
+<p align="center">Work with folders in Obsidian as if they were notes.</p>
 <p align="center">
   <a href="#install">Install with BRAT</a> ·
   <a href="docs/docs/Getting%20started.md">Getting started</a> ·
@@ -12,7 +12,9 @@
 
 ## How it works
 
-A folder note is a note attached to a folder. Click the folder name to open the note. You can keep the note itself hidden from the file tree, and add a [folder overview](docs/docs/Folder%20overview.md) to list what’s inside.
+Write in a folder, link to it, or give it a template. Behind the folder name is a regular note, so your other plugins still have a file to work with. Folder Notes NG handles the bookkeeping: it can keep the folder and note together when you rename or move them, and wait for an existing note when sync delivers the folder first.
+
+Click the folder name to open its note. You can hide the note itself from the file tree or add a [folder overview](docs/docs/Folder%20overview.md) to list what’s inside.
 
 ![Example only: clicking a folder named Example opens Example/Example.md.](docs/docs/assets/folder-note-example.svg)
 
