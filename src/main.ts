@@ -1,3 +1,4 @@
+import { reportAsyncError } from './functions/reportAsyncError';
 import {
 	type App, type TAbstractFile,
 	type MarkdownPostProcessorContext,
@@ -155,12 +156,12 @@ export default class FolderNotesPlugin extends Plugin {
 		}));
 
 		this.registerEvent(this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
-			handleRename(file, oldPath, this);
+			handleRename(file, oldPath, this).catch(reportAsyncError);
 			this.handleVaultChange();
 		}));
 
 		this.registerEvent(this.app.vault.on('delete', (file: TAbstractFile) => {
-			handleDelete(file, this);
+			handleDelete(file, this).catch(reportAsyncError);
 			this.handleVaultChange();
 		}));
 
@@ -221,7 +222,6 @@ export default class FolderNotesPlugin extends Plugin {
 		registerFileExplorerObserver(this);
 
 		const fileExplorer = getFileExplorer(this);
-		// @ts-expect-error use internal API
 		const infinityScroll = fileExplorer?.view?.tree?.infinityScroll;
 
 		if (infinityScroll) {
@@ -257,7 +257,7 @@ export default class FolderNotesPlugin extends Plugin {
 		if (fileExplorerPlugin) {
 			const fileExplorer = fileExplorerPlugin as unknown as FileExplorerPluginLike;
 			const originalRevealInFolder =
-				(fileExplorer.revealInFolder as unknown as FileExplorerPluginLike['revealInFolder'])
+				(fileExplorer.revealInFolder)
 					.bind(fileExplorer);
 			fileExplorer.revealInFolder = (file: TAbstractFile): void => {
 				if (file instanceof TFile) {
@@ -301,16 +301,16 @@ export default class FolderNotesPlugin extends Plugin {
 		const clipboardProto = Object.getPrototypeOf(clipboardManager) as ClipboardManagerLike;
 
 		const originalHandleDragOver =
-			clipboardProto.handleDragOver as unknown as ClipboardManagerLike['handleDragOver'];
+			clipboardProto.handleDragOver;
 		const originalHandleDrop =
-			clipboardProto.handleDrop as unknown as ClipboardManagerLike['handleDrop'];
-		const folderNotePlugin = this;
+			clipboardProto.handleDrop;
+		const findFolderNote = (path: string) => getFolderNote(this, path);
 		clipboardProto.handleDragOver = function (evt: DragEvent, ...args: unknown[]): void {
-			const { dragManager } = (this as ClipboardManagerLike).app;
+			const { dragManager } = this.app;
 			const draggable = dragManager?.draggable;
 
 			if (draggable?.file instanceof TFolder) {
-				const folderNote = getFolderNote(folderNotePlugin, draggable.file.path);
+				const folderNote = findFolderNote(draggable.file.path);
 				if (folderNote) {
 					dragManager.setAction(
 						window.i18next.t('interface.drag-and-drop.insert-link-here'),
@@ -323,11 +323,11 @@ export default class FolderNotesPlugin extends Plugin {
 		};
 
 		clipboardProto.handleDrop = function (evt: DragEvent, ...args: unknown[]): void {
-			const { dragManager } = (this as ClipboardManagerLike).app;
+			const { dragManager } = this.app;
 			const draggable = dragManager?.draggable;
 
 			if (draggable?.file instanceof TFolder) {
-				const folderNote = getFolderNote(folderNotePlugin, draggable.file.path);
+				const folderNote = findFolderNote(draggable.file.path);
 				if (folderNote) {
 					draggable.file = folderNote;
 					draggable.type = 'file';
@@ -391,7 +391,7 @@ export default class FolderNotesPlugin extends Plugin {
 		const folderTitleEl = target.closest('.nav-folder-title');
 		const onlyClickedOnFolderTitle = !!target.closest('.nav-folder-title-content');
 		return {
-			folderTitleEl: folderTitleEl instanceof HTMLElement ? folderTitleEl : null,
+			folderTitleEl: folderTitleEl?.instanceOf(HTMLElement) ? folderTitleEl : null,
 			onlyClickedOnFolderTitle,
 		};
 	}
@@ -484,7 +484,6 @@ export default class FolderNotesPlugin extends Plugin {
 				});
 			}
 		} catch (e) {
-			// eslint-disable-next-line max-len
 			new Notice('Error creating folder overview (folder notes plugin) - check console for more details');
 			console.error(e);
 		}
@@ -553,20 +552,19 @@ export default class FolderNotesPlugin extends Plugin {
 		return true;
 	}
 
-	async changeFolderNameInExplorer(
+	changeFolderNameInExplorer(
 		folder: TFolder,
 		newName: string | null | undefined,
 		waitForCreate = false,
 		count = 0,
-	): Promise<void> {
+	): void {
 		const MAX_RETRY_COUNT = 5;
 		const RETRY_DELAY_MS = 500;
 		if (!newName) newName = folder.name;
 		let fileExplorerItem = getFileExplorerElement(folder.path, this);
 		if (!fileExplorerItem) {
 			if (waitForCreate && count < MAX_RETRY_COUNT) {
-				await new Promise<void>((resolve) => window.setTimeout(resolve, RETRY_DELAY_MS));
-				void this.changeFolderNameInExplorer(folder, newName, waitForCreate, count + 1);
+				window.setTimeout(() => this.changeFolderNameInExplorer(folder, newName, waitForCreate, count + 1), RETRY_DELAY_MS);
 				return;
 			}
 			return;
@@ -583,11 +581,11 @@ export default class FolderNotesPlugin extends Plugin {
 		}
 	}
 
-	async changeFolderNameInPath(
+	changeFolderNameInPath(
 		folder: TFolder,
 		newName: string | null | undefined,
 		breadcrumb: HTMLElement,
-	): Promise<void> {
+	): void {
 		if (!newName) newName = folder.name;
 
 		breadcrumb.textContent = folder.newName || folder.name;

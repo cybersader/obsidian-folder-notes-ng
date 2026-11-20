@@ -357,3 +357,8 @@ body.fn-hide-collapse-icon.only-has-folder-note:not(.is-collapsed):not(.show-fol
         display: block;
     }
 }
+
+/* The searchable settings row hosts the same tab layout as older Obsidian. */
+.setting-item.fn-settings-panel {
+    display: block;
+}

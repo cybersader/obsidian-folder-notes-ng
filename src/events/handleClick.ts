@@ -1,4 +1,5 @@
 import { Keymap, Platform, type TFile } from 'obsidian';
+import { isHTMLElement } from '../functions/isHTMLElement';
 import type FolderNotesPlugin from 'src/main';
 import { openFolderNote, createFolderNote, getFolderNote } from 'src/functions/folderNoteFunctions';
 import { getExcludedFolder } from 'src/ExcludeFolders/functions/folderFunctions';
@@ -17,7 +18,7 @@ export async function handleViewHeaderClick(
 	event.stopImmediatePropagation();
 	event.preventDefault();
 	event.stopPropagation();
-	if (!(event.target instanceof HTMLElement)) return;
+	if (!isHTMLElement(event.target)) return;
 
 	const folderPath = event.target.getAttribute('data-path');
 	if (!folderPath) { return; }

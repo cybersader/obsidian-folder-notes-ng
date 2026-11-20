@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { Setting } from 'obsidian';
 import type { SettingsTab } from './SettingsTab';
 export async function renderFileExplorer(settingsTab: SettingsTab): Promise<void> {

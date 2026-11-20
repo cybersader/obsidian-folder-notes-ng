@@ -30,7 +30,6 @@ export class ExcludePattern {
 		this.disableAutoCreate = plugin.settings.excludePatternDefaultSettings.disableAutoCreate;
 		this.disableFolderNote = plugin.settings.excludePatternDefaultSettings.disableFolderNote;
 		this.enableCollapsing = plugin.settings.excludePatternDefaultSettings.enableCollapsing;
-		// eslint-disable-next-line max-len
 		this.excludeFromFolderOverview = plugin.settings.excludePatternDefaultSettings.excludeFromFolderOverview;
 		this.path = '';
 		this.hideInSettings = false;

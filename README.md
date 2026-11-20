@@ -1,31 +1,41 @@
-# Obsidian folder notes — cybersader sync-safe fork
+<p align="center">
+  <img src="docs/docs/assets/folder-notes-ng.svg" width="112" height="112" alt="Folder Notes NG logo">
+</p>
+<h1 align="center">Folder Notes NG</h1>
+<p align="center">Click a folder in Obsidian to open its note.</p>
+<p align="center">
+  <a href="#install">Install with BRAT</a> ·
+  <a href="docs/docs/Getting%20started.md">Getting started</a> ·
+  <a href="docs/docs/Folder%20overview.md">Folder overviews</a> ·
+  <a href="https://github.com/cybersader/obsidian-folder-notes-ng/releases">Releases</a>
+</p>
 
-> **This is a fork of [LostPaul/obsidian-folder-notes](https://github.com/LostPaul/obsidian-folder-notes).**
-> It adds a **sync-safe auto-create guard** that prevents folder notes from being
-> silently blanked when a sync engine (Obsidian Sync, LiveSync, Syncthing…) delivers
-> a folder *before* its note. When auto-create fires on the synced folder, the guard
-> waits for the real note (via its create event, an Obsidian-Sync-idle signal, and a
-> disk check) instead of immediately writing an empty note that races — and can lose
-> to — the inbound one. Configurable under **Settings → Folder notes → Sync safety**.
-> Plugin id stays `folder-notes` so it replaces the store version. Install via BRAT.
->
-> All credit for the plugin itself goes to Lost Paul; this fork only hardens the
-> auto-create path. Licensed GPL-3.0-or-later, same as upstream.
+Give a project folder a landing page without adding another entry to the file explorer. For example, clicking **Atlas** can open `Atlas/Atlas.md` with the project brief at the top and a [folder overview](docs/docs/Folder%20overview.md) listing the notes below it. You can hide the folder note itself from the tree and still open it by clicking the folder name.
 
-Folder notes is a plugin for the note taking app  [Obsidian](https://obsidian.md/) that lets you attach notes to folders so that you can click on the name of a folder to open the note like in the app [Notion](https://www.notion.so/).
-This plugin has some unique features that separate it from similar "Folder note" plugins like opening folder notes through the path, creating folder notes for every existing folder, templater/template support and more.
+## What NG changes
 
-Support the development of the plugin
+Folder Notes NG builds on [LostPaul’s Folder Notes](https://github.com/LostPaul/obsidian-folder-notes). The main differences affect what happens when files and folders are created:
 
-<a href='https://ko-fi.com/D1D1GHGSI' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
-## Documentation & download link
-The plugin can be downloaded by clicking on https://obsidian.md/plugins?id=folder-notes and then on install. If you need help with the plugin or want to  know what the features are that the plugin has then you can find the documentation at https://lostpaul.github.io/obsidian-folder-notes/.
+| When… | Folder Notes NG… |
+| --- | --- |
+| A sync service delivers a folder before its note | Can wait for the incoming note and check the vault again before creating an empty one. Configure this in **Settings → Folder notes → Sync safety**. |
+| You want one note to stay a plain file | Skips automatic wrapping when the note has the `fn-ignore` frontmatter property. You can also exclude entire folder paths. |
+| You *do* want loose files wrapped in folders | Uses the file’s name: `Atlas.md` becomes `Atlas/Atlas.md`, not `Untitled/Untitled.md`. |
 
-## How to install the beta version
+## Install
 
-The easiest option is to install the [BRAT plugin](https://obsidian.md/plugins?id=obsidian42-brat) and then to follow the following guide: https://tfthacker.com/brat-quick-guide & use this link https://github.com/LostPaul/obsidian-folder-notes to install the beta version.
+1. Install and enable [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) in Obsidian.
+2. In BRAT, choose **Add beta plugin** and enter **`cybersader/obsidian-folder-notes-ng`**.
+3. Enable **Folder notes** under **Settings → Community plugins**, then [create your first folder note](docs/docs/Getting%20started.md).
 
-Join the Discord server to chat about the beta and to also get the beta user role.
+**Already using Folder Notes?** NG keeps the `folder-notes` plugin ID. It replaces the [community store version](https://obsidian.md/plugins?id=folder-notes) rather than running alongside it. Use BRAT for NG updates.
 
-## Discord server
-[For regular updates on Folder Notes and my other plugins, join the Discord server to get notified and participate in discussions.](https://discord.gg/4UQEDfQmuH)
+## Contributing and CI
+
+Initialize the pinned Folder Overview submodule (`git submodule update --init --recursive`), then run `npm ci` with Node 22. Use `npm run lint` for the Obsidian recommended checks (plugin source, manifest, package, and license), `npm run build` for type-checking and bundling, and `npm run test:unit` for the Bun unit tests. `npm run e2e` starts real Obsidian against a copy of the synthetic test vault; on headless Linux, use `xvfb-run -a npm run e2e`.
+
+Before pushing to this public repository, run `npm run check:privacy` and review the staged diff, including any screenshots or video. Use synthetic notes and settings only. CI rechecks the public tree and scans Git history for secrets; these checks cannot tell whether the text or images describe a real person. CI neither publishes releases nor uploads vaults or screenshots.
+
+## Credits and license
+
+Folder Notes was created by Lost Paul. This fork retains the upstream [GPL-3.0-or-later license](LICENSE). [Support the original developer](https://ko-fi.com/D1D1GHGSI) · [Upstream documentation](https://lostpaul.github.io/obsidian-folder-notes/) · [Community Discord](https://discord.gg/4UQEDfQmuH)

@@ -1,7 +1,9 @@
 # Getting started
 
-## How to install the plugin
-The plugin can be downloaded by clicking on [https://obsidian.md/plugins?id=folder-notes](https://obsidian.md/plugins?id=folder-notes) and then on install.
+## Install Folder Notes NG
+
+In [BRAT](https://obsidian.md/plugins?id=obsidian42-brat), choose **Add beta plugin** and enter `cybersader/obsidian-folder-notes-ng`. NG shares the `folder-notes` ID with the [upstream store version](https://obsidian.md/plugins?id=folder-notes); use BRAT to install and update NG, not the store.
+
 ## Basic features 
 
 ### Create folder note

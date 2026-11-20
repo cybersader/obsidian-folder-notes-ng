@@ -35,11 +35,8 @@ export default class ConfirmationModal extends Modal {
 		const { contentEl } = this;
 		contentEl.createEl('h2', { text: 'Create folder note for every folder' });
 		const setting = new Setting(contentEl);
-		// eslint-disable-next-line max-len
 		setting.infoEl.createEl('p', { text: 'Make sure to backup your vault before using this feature.' }).addClass('fn-warning-text');
-		// eslint-disable-next-line max-len
 		setting.infoEl.createEl('p', { text: 'This feature will create a folder note for every folder in your vault.' });
-		// eslint-disable-next-line max-len
 		setting.infoEl.createEl('p', { text: 'Every folder that already has a folder note will be ignored.' });
 		setting.infoEl.createEl('p', { text: 'Every excluded folder will be ignored.' });
 		if (

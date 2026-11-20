@@ -3,7 +3,7 @@
  * auto-wrapped into a folder note when `autoCreateForFiles` is on, and that each
  * escape hatch blocks that wrapping.
  *
- * Reproduces the b&g incident: with auto-create-for-files on, a plain file in a
+ * Regression case: with auto-create-for-files on, a plain file in a
  * folder gets turned into `<folder>/Untitled/Untitled.md` (name lost). The hatches:
  *   - fn-ignore frontmatter
  *   - always-ignore folder path

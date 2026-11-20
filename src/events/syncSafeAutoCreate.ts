@@ -31,7 +31,7 @@ const TICK_MS = 150;
 const FALLBACK_DELAY_MS = 2500;
 const FALLBACK_MAX_WAIT_MS = 30000;
 
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number): Promise<void> => new Promise((r) => window.setTimeout(r, ms));
 
 /**
  * Returns true when autoCreate should be ABORTED (a real note arrived, or the
@@ -70,7 +70,6 @@ export async function deferAndShouldSkipAutoCreate(
 		const startedAt = Date.now();
 		let syncIdleSince = startedAt; // wall-clock instant Sync last became idle
 
-		// eslint-disable-next-line no-constant-condition
 		while (true) {
 			const now = Date.now();
 			const elapsedMs = now - startedAt;
@@ -150,9 +149,22 @@ export function getExpectedFolderNotePath(
  * operational. When the user isn't logged in it reports `syncing: true` /
  * `syncStatus: "Uninitialized"`, which we must NOT treat as "actively syncing".
  */
-function getSyncInstance(plugin: FolderNotesPlugin): any | null {
+interface SyncStatus {
+	dataLoaded?: boolean;
+	syncStatus?: string;
+	pause?: boolean;
+	syncing?: boolean;
+}
+
+type SyncShell = { instance?: SyncStatus };
+
+function getSyncInstance(plugin: FolderNotesPlugin): SyncStatus | null {
 	try {
-		const ip: any = (plugin.app as any).internalPlugins;
+		// Older registries expose the entry directly instead of through a getter.
+		const ip = plugin.app.internalPlugins as unknown as {
+			getPluginById?: (id: 'sync') => SyncShell | null;
+			plugins?: { sync?: SyncShell };
+		} | undefined;
 		const shell = ip?.getPluginById?.('sync') ?? ip?.plugins?.['sync'];
 		return shell?.instance ?? null;
 	} catch {

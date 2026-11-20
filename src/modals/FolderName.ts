@@ -35,7 +35,7 @@ export default class FolderNameModal extends Modal {
 							if (
 								!this.app.vault.getAbstractFileByPath(newFolderPath)
 							) {
-								this.plugin.app.fileManager.renameFile(
+								await this.plugin.app.fileManager.renameFile(
 									this.folder,
 									newFolderPath,
 								);

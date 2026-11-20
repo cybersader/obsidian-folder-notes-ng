@@ -59,6 +59,7 @@ interface FolderItem {
 }
 
 interface TreeItem {
+    infinityScroll?: { rootMargin: number };
     focusedItem: FileOrFolderItem;
     setFocusedItem: (item: FileOrFolderItem, moveViewport: boolean) => void;
     selectedDoms: Set<FileOrFolderItem>;

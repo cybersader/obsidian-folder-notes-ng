@@ -38,7 +38,6 @@ export default class PatternSettings extends Modal {
 
 		new Setting(contentEl)
 			.setName('Disable auto creation of folder notes in this folder')
-			// eslint-disable-next-line max-len
 			.setDesc('Choose if a folder note should be created when a new folder is created that matches this pattern')
 			.addToggle((toggle) =>
 				toggle

@@ -10,7 +10,6 @@ export async function renderFolderOverview(settingsTab: SettingsTab): Promise<vo
 	containerEl.createEl('h3', { text: 'Global settings' });
 	new Setting(containerEl)
 		.setName('Auto-update links without opening the overview')
-		// eslint-disable-next-line max-len
 		.setDesc('If enabled, the links that appear in the graph view will be updated even when you don\'t have the overview open somewhere.')
 		.addToggle((toggle) =>
 			toggle
@@ -41,8 +40,7 @@ export async function renderFolderOverview(settingsTab: SettingsTab): Promise<vo
 		defaultOverviewSettings,
 		plugin,
 		plugin.settings.defaultOverview,
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		settingsTab.display,
+		settingsTab.display.bind(settingsTab),
 		undefined,
 		undefined,
 		undefined,
