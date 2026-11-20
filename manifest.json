@@ -1,7 +1,7 @@
 {
   "id": "folder-notes",
   "name": "Folder notes",
-  "version": "1.8.30",
+  "version": "1.8.31",
   "minAppVersion": "1.4.10",
   "description": "Open a folder’s note by clicking its name without collapsing the folder. Sync-safe creation waits for incoming notes before creating an empty one.",
   "author": "Lost Paul",
