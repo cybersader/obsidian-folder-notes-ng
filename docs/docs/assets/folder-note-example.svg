@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 240" role="img" aria-labelledby="title desc">
+  <title id="title">Example: click a folder to open its note</title>
+  <desc id="desc">Illustration only: the folder named Example is selected in the file tree. Its note, Example/Example.md, is open on the right.</desc>
+  <defs>
+    <linearGradient id="paper" x2="0.95" y2="1"><stop stop-color="#fffaf1"/><stop offset="1" stop-color="#f1e8da"/></linearGradient>
+    <path id="folder" d="M1 5h7l3 3h12v12H1z" stroke-linejoin="round"/>
+    <path id="page" d="M3 2h9l5 5v14H3z M12 2v6h5" stroke-linejoin="round" fill="none"/>
+  </defs>
+  <rect x="1" y="1" width="718" height="238" rx="16" fill="#271e35" stroke="#65516f"/>
+  <g font-family="system-ui, sans-serif">
+    <text x="26" y="38" fill="#cbbad9" font-size="15" font-weight="500">File explorer</text>
+    <rect x="16" y="58" width="216" height="39" rx="8" fill="#513178"/>
+    <use href="#folder" x="29" y="65" fill="#b596e8" stroke="#b596e8"/>
+    <text x="63" y="84" fill="#fff9f0" font-size="19" font-weight="650">Example</text>
+    <path d="M40 103v55m0-40h13m-13 39h13" fill="none" stroke="#735e82" stroke-width="1.5"/>
+    <g fill="#e3d9e9" font-size="16"><text x="86" y="125">First note</text><text x="86" y="164">Second note</text></g>
+    <g stroke="#b596ce" stroke-width="1.4"><use href="#page" x="59" y="107"/><use href="#page" x="59" y="146"/></g>
+    <rect x="248" y="13" width="459" height="214" rx="10" fill="url(#paper)"/>
+    <text x="276" y="44" fill="#665574" font-size="14">Example / Example.md</text>
+    <path d="M276 58h400" stroke="#d9cddd"/>
+    <text x="276" y="101" font-size="30" font-weight="600" fill="#332338">Example</text>
+    <text x="277" y="132" fill="#564756" font-size="16">This is the folder note.</text>
+    <g font-size="16" fill="#573480"><text x="277" y="169">↗  First note</text><text x="277" y="197">↗  Second note</text></g>
+  </g>
+</svg>

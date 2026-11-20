@@ -19,7 +19,7 @@
 	},
 	"keywords": [],
 	"author": "Lost Paul",
-	"license": "GPL-3.0-or-later",
+	"license": "SEE LICENSE IN LICENSE",
 	"devDependencies": {
 		"@eslint/js": "9.39.4",
 		"@types/mocha": "^10.0.10",
