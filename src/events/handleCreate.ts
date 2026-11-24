@@ -12,6 +12,7 @@ import {
 	addCSSClassToFileExplorerEl,
 } from 'src/functions/styleFunctions';
 import { isFileInAttachmentFolder } from '@app/functions/utils';
+import { isAttachmentFolder } from '@app/functions/attachmentFolders';
 import { deferAndShouldSkipAutoCreate, isSyncBusy } from './syncSafeAutoCreate';
 import { isIgnored } from '@app/functions/escapeHatches';
 
@@ -104,14 +105,12 @@ async function shouldSkipFileWrap(plugin: FolderNotesPlugin, file: TFile): Promi
 async function handleFolderCreation(folder: TFolder, plugin: FolderNotesPlugin): Promise<void> {
 	let openFile = plugin.settings.autoCreateFocusFiles;
 
-	const attachmentFolderPath = plugin.app.vault.getConfig('attachmentFolderPath') as string;
-	const cleanAttachmentFolderPath = attachmentFolderPath?.replace('./', '') || '';
-	const attachmentsAreInRootFolder = attachmentFolderPath === './' || attachmentFolderPath === '';
 	addCSSClassToFileExplorerEl(folder.path, 'fn-empty-folder', false, plugin);
 
-	if (!plugin.settings.autoCreateForAttachmentFolder) {
-		if (!attachmentsAreInRootFolder && cleanAttachmentFolderPath === folder.name) return;
-	} else if (!attachmentsAreInRootFolder && cleanAttachmentFolderPath === folder.name) {
+	// Attachment storage (Obsidian's setting or an attachment manager's rule) is
+	// not a topic; it only gets a note when the user explicitly asks for that.
+	if (isAttachmentFolder(plugin.app, folder.path)) {
+		if (!plugin.settings.autoCreateForAttachmentFolder) return;
 		openFile = false;
 	}
 

@@ -37,6 +37,7 @@ import { registerOverviewCommands } from './obsidian-folder-overview/src/Command
 import { updateOverviewView, updateViewDropdown } from './obsidian-folder-overview/src/main';
 import { FvIndexDB } from './obsidian-folder-overview/src/utils/IndexDB';
 import { updateAllOverviews } from './obsidian-folder-overview/src/utils/functions';
+import { isAttachmentFolder } from './functions/attachmentFolders';
 
 interface FileExplorerPluginLike extends Plugin {
 	revealInFolder: (file: TAbstractFile) => void;
@@ -510,44 +511,31 @@ export default class FolderNotesPlugin extends Plugin {
 	updateViewDropdown: typeof updateViewDropdown = updateViewDropdown;
 
 	isEmptyFolderNoteFolder(folder: TFolder): boolean {
-		let attachmentFolderPath = this.app.vault.getConfig('attachmentFolderPath') as string;
-		const cleanAttachmentFolderPath = attachmentFolderPath?.replace('./', '') || '';
-		const attachmentsAreInRootFolder = attachmentFolderPath === './'
-			|| attachmentFolderPath === '';
 		const threshold = this.settings.storageLocation === 'insideFolder' ? 1 : 0;
 		if (folder.children.length === 0) {
 			void addCSSClassToFileExplorerEl(folder.path, 'fn-empty-folder', false, this);
 		}
-		attachmentFolderPath = `${folder.path}/${cleanAttachmentFolderPath}`;
 
 		if (folder.children.length === threshold) {
 			void addCSSClassToFileExplorerEl(folder.path, 'fn-empty-folder', false, this);
 			return true;
 		} else if (folder.children.length > threshold) {
-			if (attachmentsAreInRootFolder) {
-				return false;
-			} else if (
-				this.app.vault.getAbstractFileByPath(attachmentFolderPath) instanceof TFolder
-			) {
-				const attachmentFolder = this.app.vault.getAbstractFileByPath(attachmentFolderPath);
-				if (
-					attachmentFolder instanceof TFolder &&
-					folder.children.length <= threshold + 1
-				) {
-					void addCSSClassToFileExplorerEl(folder.path, 'fn-empty-folder', false, this);
-					void addCSSClassToFileExplorerEl(
-						folder.path, 'fn-has-attachment-folder',
-						false, this,
-					);
-					void addCSSClassToFileExplorerEl(
-						folder.path, 'fn-has-attachment-folder',
-						true, this,
-					);
-				}
-				return folder.children.length <= threshold + 1;
+			const hasAttachmentFolder = folder.children.some(
+				(child) => child instanceof TFolder && isAttachmentFolder(this.app, child.path),
+			);
+			if (!hasAttachmentFolder) return false;
+			if (folder.children.length <= threshold + 1) {
+				void addCSSClassToFileExplorerEl(folder.path, 'fn-empty-folder', false, this);
+				void addCSSClassToFileExplorerEl(
+					folder.path, 'fn-has-attachment-folder',
+					false, this,
+				);
+				void addCSSClassToFileExplorerEl(
+					folder.path, 'fn-has-attachment-folder',
+					true, this,
+				);
 			}
-			return false;
-
+			return folder.children.length <= threshold + 1;
 		}
 		return true;
 	}
