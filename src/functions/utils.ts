@@ -1,6 +1,7 @@
 import { TFolder, TFile, View, type TAbstractFile } from 'obsidian';
 import type { FileExplorerWorkspaceLeaf, FileExplorerView } from 'src/globals';
 import { getFolderNote } from './folderNoteFunctions';
+import { isInAttachmentFolder } from './attachmentFolders';
 import type FolderNotesPlugin from 'src/main';
 import type { FileTreeItem } from 'obsidian-typings';
 import type FolderOverviewPlugin from 'src/obsidian-folder-overview/src/main';
@@ -97,15 +98,6 @@ export function getFileExplorerActiveFolderNote(plugin: FolderNotesPlugin): TFil
 }
 
 
-export function getAttachmentFolderPath(plugin: FolderNotesPlugin): string {
-	const attachmentFolderPath = plugin.app.vault.getConfig('attachmentFolderPath') as string;
-	const cleanAttachmentFolderPath = attachmentFolderPath?.replace('./', '') || '';
-	return cleanAttachmentFolderPath;
-}
-
 export function isFileInAttachmentFolder(plugin: FolderNotesPlugin, file: TAbstractFile): boolean {
-	const attachmentFolderPath = getAttachmentFolderPath(plugin);
-	if (!attachmentFolderPath) return false;
-	return file.path.startsWith(attachmentFolderPath + '/')
-		|| file.path.includes('/' + attachmentFolderPath + '/');
+	return isInAttachmentFolder(plugin.app, file.path);
 }
